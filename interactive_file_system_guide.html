@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File System vs DBMS: Interactive Guide</title>
+    <!-- Chart.js for data visualization matrix -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+        /* Root Variable Tokens for unified design */
+        :root {
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            --bg-color: #fafaf9;
+            --text-color: #292524;
+            --text-muted: #57534e;
+            
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --primary-dark: #312e81;
+            
+            --border-color: #e7e5e4;
+            --card-bg: #ffffff;
+            
+            --rose: #f43f5e;
+            --rose-light: #fff1f2;
+            --rose-dark: #9f1239;
+            --rose-border: #fecdd3;
+            
+            --emerald: #10b981;
+            --emerald-light: #ecfdf5;
+            --emerald-dark: #065f46;
+            --emerald-border: #a7f3d0;
+            
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --amber-dark: #78350f;
+            --amber-border: #fde68a;
+            
+            --sky: #0ea5e9;
+            --sky-light: #e0f2fe;
+            --sky-dark: #075985;
+            --sky-border: #bae6fd;
+            
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Selection styling */
+        ::selection {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        /* Utilities */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .scroll-mt-24 {
+            scroll-margin-top: 96px;
+        }
+
+        /* Nav Bar Custom Styling */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-b: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-decoration: none;
+            letter-spacing: -0.025em;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .navbar-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .navbar-link:hover {
+            color: var(--primary);
+        }
+
+        /* Header block */
+        .header {
+            text-align: center;
+            padding: 64px 24px 32px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-color);
+            line-height: 1.15;
+            letter-spacing: -0.04em;
+            margin-bottom: 20px;
+        }
+
+        .header-title span {
+            color: var(--primary);
+        }
+
+        .header-desc {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Layout Grid Blocks */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-5 {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        /* Main structure layout spacer */
+        .main-space {
+            display: flex;
+            flex-direction: column;
+            gap: 96px;
+            padding: 48px 0 96px 0;
+        }
+
+        /* Section layout header styling */
+        .section-header {
+            margin-bottom: 32px;
+            border-left: 4px solid var(--primary);
+            padding-left: 16px;
+        }
+
+        .section-header.danger-theme {
+            border-left-color: var(--rose);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 32px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 24px;
+        }
+
+        /* Button style tabs */
+        .tab-container {
+            display: flex;
+            background-color: #f1f5f9;
+            padding: 4px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 10px 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* File list display box */
+        .content-display-box {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            min-height: 260px;
+        }
+
+        .detail-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .detail-list li {
+            font-size: 0.875rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .detail-list strong {
+            color: var(--primary);
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        /* Visual structures */
+        .organization-box {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .org-structure {
+            border-left: 2px solid var(--amber);
+            padding-left: 16px;
+        }
+
+        .org-structure.direct {
+            border-left-color: var(--emerald);
+        }
+
+        .org-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 6px;
+        }
+
+        .org-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* Streaming dynamic chunks for file blocks visualization */
+        .visual-blocks {
+            display: flex;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            background-color: #f1f5f9;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .block-unit {
+            padding: 8px 12px;
+            border-right: 1px solid var(--border-color);
+            background-color: var(--amber-light);
+            color: var(--amber-dark);
+        }
+
+        .block-unit.inactive {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            border-right: none;
+        }
+
+        .block-unit.direct-target {
+            background-color: var(--emerald-light);
+            color: var(--emerald-dark);
+            font-weight: 700;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tooltip-pop {
+            display: none;
+            position: absolute;
+            top: -36px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-dark);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            font-size: 0.65rem;
+            z-index: 10;
+        }
+
+        .block-unit.direct-target:hover .tooltip-pop {
+            display: block;
+        }
+
+        /* Operation Flows Styles */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .flow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            gap: 16px;
+        }
+
+        .flow-steps::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #f1f5f9;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .flow-steps {
+                flex-direction: column;
+            }
+            .flow-steps::after {
+                display: none;
+            }
+        }
+
+        .op-step-btn {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            z-index: 2;
+            transition: var(--transition);
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .op-step-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow-md);
+            transform: scale(1.05);
+        }
+
+        .flow-detail-card {
+            background-color: #e0e7ff;
+            border: 1px solid #c7d2fe;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            min-height: 140px;
+        }
+
+        .flow-detail-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .flow-detail-desc {
+            font-size: 0.925rem;
+            color: #3730a3;
+        }
+
+        /* Limitations Split Layout */
+        .limitations-split {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .limitations-split {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .lim-nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lim-nav-btn {
+            text-align: left;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .lim-nav-btn:hover {
+            background-color: var(--rose-light);
+            border-color: var(--rose-border);
+        }
+
+        .lim-nav-btn.active {
+            background-color: var(--rose);
+            color: #ffffff;
+            border-color: var(--rose);
+            box-shadow: var(--shadow-md);
+        }
+
+        .lim-detail-pane {
+            background-color: #fff;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .lim-badge {
+            align-self: flex-start;
+            background-color: var(--rose-light);
+            color: var(--rose-dark);
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .lim-pane-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .lim-section-head {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .lim-concept-body {
+            font-size: 1.05rem;
+            color: #475569;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .lim-example-block {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--rose);
+            padding: 16px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        /* Schema Layers Layout */
+        .schema-container {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 32px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 768px) {
+            .schema-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .layers-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .layer-box {
+            background-color: #f8fafc;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .layer-box.external {
+            background-color: var(--sky-light);
+            border-color: var(--sky-border);
+        }
+
+        .layer-box.external:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.15);
+        }
+
+        .layer-box.conceptual {
+            background-color: var(--amber-light);
+            border-color: var(--amber-border);
+        }
+
+        .layer-box.conceptual:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.15);
+        }
+
+        .layer-box.physical {
+            background-color: #f5f5f4;
+            border-color: #d6d3d1;
+        }
+
+        .layer-box.physical:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(120, 113, 108, 0.15);
+        }
+
+        .layer-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .layer-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .layer-connector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.125rem;
+            color: #94a3b8;
+            font-weight: 700;
+            gap: 8px;
+        }
+
+        .connector-txt {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .schema-info-pane {
+            background-color: #fff;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .info-pane-placeholder {
+            text-align: center;
+            color: #94a3b8;
+            padding: 48px 24px;
+        }
+
+        .info-pane-placeholder .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        /* Dynamic items styling */
+        .object-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            background-color: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-top: 32px;
+        }
+
+        @media (max-width: 640px) {
+            .object-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .object-item {
+            display: flex;
+            gap: 12px;
+            font-size: 0.875rem;
+            color: var(--primary-dark);
+        }
+
+        .object-item strong {
+            display: inline;
+            color: #1e1b4b;
+        }
+
+        .bullet {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Comparison block */
+        .comparison-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+
+        .matrix-blocks {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .matrix-blocks {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .matrix-block {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+        }
+
+        .matrix-block.dbms {
+            background-color: #e0e7ff;
+            border-color: #c7d2fe;
+        }
+
+        .matrix-block h5 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .matrix-block.dbms h5 {
+            color: var(--primary-dark);
+            border-bottom-color: #c7d2fe;
+        }
+
+        .matrix-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .matrix-block.dbms .matrix-list {
+            color: #3730a3;
+        }
+
+        /* Footer standard */
+        .footer {
+            background-color: #1c1917;
+            color: #a8a29e;
+            padding: 48px 24px;
+            text-align: center;
+            font-size: 0.875rem;
+            border-top: 1px solid #2e2a24;
+        }
+
+        .footer p:last-child {
+            color: #78716c;
+            margin-top: 8px;
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="#" class="navbar-brand">🏛️ Database Transition Architecture</a>
+            <div class="navbar-links">
+                <a href="#pillar1" class="navbar-link">1. The File Concept</a>
+                <a href="#pillar2" class="navbar-link">2. Operations</a>
+                <a href="#pillar3" class="navbar-link">3. Fatal Limitations</a>
+                <a href="#pillar4" class="navbar-link">4. DBMS Paradigm</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Block -->
+    <header class="header">
+        <h2 class="header-title">Conventional File System & <span>DBMS Transition</span></h2>
+        <p class="header-desc">
+            Yeh interactive reference guide Conventional File System (Traditional File Handling) aur Database Management System (DBMS) ke beech ke logical and technical concepts ko bilkul buniyaad se lekar advanced architectural standards tak detail mein samjhati hai. Explore karne ke liye niche diye gaye sections par click karein.
+        </p>
+    </header>
+
+    <main class="container main-space">
+
+        <!-- Pillar 1 Section -->
+        <section id="pillar1" class="scroll-mt-24">
+            <div class="section-header">
+                <h3 class="section-title">Pillar 1: Buniyaadi Parichay aur Storage Layer</h3>
+                <p class="section-desc">Is section ka uddeshya data storage ke buniyaadi formats aur structures ko samajhna hai. Yahan aap Text vs Binary files aur unke organization methods (Sequential vs Direct) ko interactively compare kar sakte hain, jo conventional storage ki foundation hain.</p>
+            </div>
+
+            <div class="grid-2">
+                <!-- Tabbed Text vs Binary block -->
+                <div class="card">
+                    <h4 class="card-title">1. Text Files vs. Binary Files</h4>
+                    <div class="tab-container">
+                        <button id="btn-text-file" class="tab-btn active">Text Files (.txt, .csv)</button>
+                        <button id="btn-binary-file" class="tab-btn">Binary Files (.bin, .dat)</button>
+                    </div>
+                    <div id="file-content-display" class="content-display-box">
+                        <ul class="detail-list">
+                            <li><strong>Representation:</strong> Data ko characters (alphabets, numbers, symbols) ke roop mein store kiya jata hai.</li>
+                            <li><strong>Encoding:</strong> ASCII, UTF-8 ka upyog. Character 'A' ko ASCII code 65 ke roop mein store kiya jata hai.</li>
+                            <li><strong>Readability:</strong> Human-readable. Notepad ya VS Code mein asani se padha ja sakta hai.</li>
+                            <li><strong>Size & Efficiency:</strong> Size bada hota hai. Processing slow hoti hai kyunki numerical calculations ke liye parsing lagti hai.</li>
+                            <li><strong>EOF:</strong> Special character (jaise Control-Z) se EOF represent hota hai.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- File Organization block -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h4 class="card-title">2. File Organization Structures</h4>
+                        <div class="organization-box">
+                            <div class="org-structure">
+                                <h5 class="org-title">A. Sequential Access</h5>
+                                <p class="org-desc">Records ko ek ke baad ek contiguous sequence mein store aur read kiya jata hai. Search complexity O(N) hoti hai. Magnetic tapes iska classic example hain.</p>
+                                <div class="visual-blocks">
+                                    <div class="block-unit">Rec 1</div>
+                                    <div class="block-unit">Rec 2</div>
+                                    <div class="block-unit">Rec 3</div>
+                                    <div class="block-unit inactive">[EOF]</div>
+                                </div>
+                            </div>
+                            <div class="org-structure direct">
+                                <h5 class="org-title">B. Direct / Random Access</h5>
+                                <p class="org-desc">Kisi bhi record ko bina traverse kiye base address formula: <code>Address = Base + (Record * Size)</code> se directly access kiya ja sakta hai. Search complexity O(1) hoti hai.</p>
+                                <div class="visual-blocks">
+                                    <div class="block-unit" style="background-color: #f8fafc; color: var(--text-muted); width: 25%; text-align: center;">Rec 0</div>
+                                    <div class="block-unit" style="background-color: #f8fafc; color: var(--text-muted); width: 25%; text-align: center;">Rec 1</div>
+                                    <div class="block-unit direct-target" style="width: 25%; text-align: center;">
+                                        Rec 2
+                                        <span class="tooltip-pop">Target! (Jump Direct)</span>
+                                    </div>
+                                    <div class="block-unit" style="background-color: #f8fafc; color: var(--text-muted); width: 25%; text-align: center; border-right: none;">Rec 3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pillar 2 Section -->
+        <section id="pillar2" class="scroll-mt-24">
+            <div class="section-header">
+                <h3 class="section-title">Pillar 2: File Handling Operations</h3>
+                <p class="section-desc">Yeh section operating system kernel ke low-level system calls ko step-by-step darshata hai. Click karke samjhein ki background mein ek file operation cycle (Create -> Check -> R/W -> Close) kaise kaam karti hai.</p>
+            </div>
+            
+            <div class="card">
+                <div class="flow-container">
+                    <div class="flow-steps">
+                        <button id="step-op-1" class="op-step-btn active">1. Create/Open</button>
+                        <button id="step-op-2" class="op-step-btn">2. Error Checking</button>
+                        <button id="step-op-3" class="op-step-btn">3. Read/Write</button>
+                        <button id="step-op-4" class="op-step-btn">4. Close</button>
+                    </div>
+
+                    <div id="operation-detail-card" class="flow-detail-card">
+                        <h4 class="flow-detail-title">Create/Open Operation</h4>
+                        <p class="flow-detail-desc">Jab program kisi file ko open karta hai, OS file storage check karta hai aur System File Table mein entry karke unique <strong>File Descriptor (FCB)</strong> return karta hai. Modes: Read ('r'), Write ('w' - truncates), Append ('a' - pointer at EOF).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pillar 3 Section -->
+        <section id="pillar3" class="scroll-mt-24">
+            <div class="section-header danger-theme">
+                <h3 class="section-title">Pillar 3: The Fatal Limitations (Core Heatmap)</h3>
+                <p class="section-desc">Traditional file system ko bypass karke DBMS par switch karne ke piche ke 8 mukhya kaaran. Kisi bhi block par click karein aur us drawback ka real-world technical example aur concept padhein. Yahi syllabus ka sabse bada hissa hai.</p>
+            </div>
+
+            <div class="limitations-split">
+                <div class="lim-nav-list" id="limitation-buttons-container">
+                    <!-- Javascript will inject buttons dynamically here -->
+                </div>
+
+                <div class="lim-detail-pane" id="limitation-display">
+                    <!-- Dynamic rendering target of limitations details -->
+                    <span class="lim-badge">Select a limitation</span>
+                    <h4 class="lim-pane-title">Click any limitation on the left</h4>
+                    <p class="lim-concept-body" style="font-style: italic; color: #94a3b8;">Is area mein specific fatal limitation ki detailed theory aur technical example display hoga.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pillar 4 Section -->
+        <section id="pillar4" class="scroll-mt-24">
+            <div class="section-header">
+                <h3 class="section-title">Pillar 4: Paradigm Shift to DBMS</h3>
+                <p class="section-desc">File limitations ke baad hum Centralized DBMS architectures ki aur badhte hain. Niche <strong>ANSI-SPARC 3-Schema Architecture</strong> ka interactive diagram hai. Har layer par hover karke Data Abstraction samjhein.</p>
+            </div>
+
+            <div class="schema-container">
+                <div class="layers-stack">
+                    <div class="layer-box external" onmouseenter="updateSchemaDetails('external')">
+                        <h5 class="layer-name" style="color: var(--sky-dark);">External Level</h5>
+                        <p class="layer-sub" style="color: #0369a1;">View 1, View 2, View 3</p>
+                    </div>
+                    
+                    <div class="layer-connector">
+                        <span>↧</span>
+                        <span class="connector-txt">Logical Data Independence</span>
+                    </div>
+                    
+                    <div class="layer-box conceptual" onmouseenter="updateSchemaDetails('conceptual')">
+                        <h5 class="layer-name" style="color: var(--amber-dark);">Conceptual / Logical Level</h5>
+                        <p class="layer-sub" style="color: #b45309;">Tables, Relations, Constraints</p>
+                    </div>
+                    
+                    <div class="layer-connector">
+                        <span>↧</span>
+                        <span class="connector-txt">Physical Data Independence</span>
+                    </div>
+                    
+                    <div class="layer-box physical" onmouseenter="updateSchemaDetails('physical')">
+                        <h5 class="layer-name" style="color: #44403c;">Physical Level</h5>
+                        <p class="layer-sub" style="color: #78716c;">Bit storage, B-Trees, Blocks</p>
+                    </div>
+                </div>
+
+                <div class="schema-info-pane">
+                    <div id="schema-details-pane" style="height: 100%;">
+                        <div class="info-pane-placeholder">
+                            <p class="icon">🔍</p>
+                            <p>Hover over any schema layer on the left to see its abstraction level details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="object-items">
+                <div class="object-item">
+                    <span class="bullet">🔹</span>
+                    <div>
+                        <strong>Minimal Redundancy:</strong> Normalization rules systematically minimize duplicate data storage.
+                    </div>
+                </div>
+                <div class="object-item">
+                    <span class="bullet">🔹</span>
+                    <div>
+                        <strong>Controlled Inconsistency:</strong> Multi-relational systems map changes automatically across views.
+                    </div>
+                </div>
+                <div class="object-item">
+                    <span class="bullet">🔹</span>
+                    <div>
+                        <strong>ACID Transactions:</strong> Full rollback capabilities guarantee transaction safety during crashes.
+                    </div>
+                </div>
+                <div class="object-item">
+                    <span class="bullet">🔹</span>
+                    <div>
+                        <strong>Declarative Queries:</strong> Powerful mathematical SQL engines optimize data fetch procedures.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section id="matrix" class="scroll-mt-24">
+            <div class="section-header">
+                <h3 class="section-title">Comprehensive Comparison Matrix</h3>
+                <p class="section-desc">Dono systems ke beech ka magnitude difference. Chart dhyan se dekhein: DBMS har architecture parameter mein conventional files se behtar scale karta hai. Hover over data points to see the metrics.</p>
+            </div>
+
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                
+                <div class="matrix-blocks">
+                    <div class="matrix-block">
+                        <h5>Conventional File System Focus</h5>
+                        <ul class="matrix-list">
+                            <li>• High redundancy (Multiple physical copies).</li>
+                            <li>• No dynamic lock controls (Prone to lost updates).</li>
+                            <li>• High-level custom query code required.</li>
+                            <li>• Limited to general OS file level permissions (R-W-X).</li>
+                        </ul>
+                    </div>
+                    <div class="matrix-block dbms">
+                        <h5>Centralized DBMS Architecture</h5>
+                        <ul class="matrix-list">
+                            <li>• Systematically controlled using Normalization rules.</li>
+                            <li>• Robust Two-Phase Locking and Timestamping protocols.</li>
+                            <li>• Native optimized Declarative SQL Engines.</li>
+                            <li>• Fine-grained column, cell-level security (Views schema).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Academic Standard Reference Matrix & Syllabus Boundaries.</p>
+            <p>Data Abstraction Models and 8 Key Fatal Constraints form the core analytical factors.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab functionality for Pillar 1
+        const btnTextFile = document.getElementById('btn-text-file');
+        const btnBinaryFile = document.getElementById('btn-binary-file');
+        const fileContentDisplay = document.getElementById('file-content-display');
+
+        const textContent = `
+            <ul class="detail-list fade-in">
+                <li><strong>Representation:</strong> Data ko characters (alphabets, numbers, symbols) ke roop mein store kiya jata hai.</li>
+                <li><strong>Encoding:</strong> ASCII, UTF-8 ka upyog. Character 'A' ko ASCII code 65 ke roop mein store kiya jata hai.</li>
+                <li><strong>Readability:</strong> Human-readable. Notepad ya VS Code mein asani se padha ja sakta hai.</li>
+                <li><strong>Size & Efficiency:</strong> Size bada hota hai. Processing slow hoti hai kyunki numerical calculations ke liye text-to-binary parsing lagti hai.</li>
+                <li><strong>EOF:</strong> Special character (jaise Control-Z ya code 0x1A) se EOF represent hota hai.</li>
+            </ul>
+        `;
+
+        const binaryContent = `
+            <ul class="detail-list fade-in">
+                <li><strong>Representation:</strong> Data ko raw, unprocessed bytes (sequences of 8-bit bytes) ke roop mein store kiya jata hai.</li>
+                <li><strong>Encoding:</strong> Kisi encoding scheme ka upyog nahi hota. Memory mein data direct copy-paste hota hai.</li>
+                <li><strong>Readability:</strong> Human-readable nahi. Notepad mein kholne par garbage ya random characters dikhte hain.</li>
+                <li><strong>Size & Efficiency:</strong> Compact size. Direct memory serialization hone ke kaaran fast I/O operations.</li>
+                <li><strong>EOF:</strong> OS descriptor table se byte count track karke physical limit tak read karta hai.</li>
+            </ul>
+        `;
+
+        btnTextFile.addEventListener('click', () => {
+            btnTextFile.classList.add('active');
+            btnBinaryFile.classList.remove('active');
+            fileContentDisplay.innerHTML = textContent;
+        });
+
+        btnBinaryFile.addEventListener('click', () => {
+            btnBinaryFile.classList.add('active');
+            btnTextFile.classList.remove('active');
+            fileContentDisplay.innerHTML = binaryContent;
+        });
+
+        // Step details for Pillar 2
+        const opSteps = [
+            { id: 'step-op-1', title: 'Create/Open Operation', desc: 'Jab program kisi file ko create ya open karta hai, toh OS file storage check karta hai aur System File Table mein entry karke ek unique <strong>File Descriptor (FCB)</strong> return karta hai. Modes: Read (r), Write (w), Append (a).' },
+            { id: 'step-op-2', title: 'Error Checking Mechanism', desc: 'Developers ko logical crashes rokne ke liye manual error handling karni hoti hai. Jaise: File Not Found (NULL checks), Access Denied (Permission checks), EOF detection, aur Disk Space Full exceptions.' },
+            { id: 'step-op-3', title: 'Read/Write Operation', desc: 'Direct RAM memory buffer ka upyog hota hai. Read process mein disk se bada chunk buffer mein aata hai. Write process mein data pehle temporary buffer mein jata hai, full hone par disk par flush (write) hota hai.' },
+            { id: 'step-op-4', title: 'Close Operation', desc: 'Sabse zaroori system cleanliness process. Iske background tasks hain: Buffer Flushing (data loss rokne ke liye), Releasing File Locks, aur Freeing File Descriptor taaki memory leak na ho.' }
+        ];
+
+        const opDetailCard = document.getElementById('operation-detail-card');
+        const opBtns = document.querySelectorAll('.op-step-btn');
+
+        opBtns.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                opBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                opDetailCard.className = 'flow-detail-card fade-in';
+                opDetailCard.innerHTML = `
+                    <h4 class="flow-detail-title">${opSteps[index].title}</h4>
+                    <p class="flow-detail-desc">${opSteps[index].desc}</p>
+                `;
+            });
+        });
+
+        // 8 Fatal Limitations Data Injection for Pillar 3
+        const limitations = [
+            { id: 1, name: "1. Data Redundancy", tag: "डेटा दोहराव", concept: "Alag-alag departments independent applications chala rahe hote hain, isliye ek hi entity (student/employee) ki details un sabhi files mein redundant (repeated) store hoti hain, jisse disk space waste hoti hai.", example: "Academic Dept file mein `ID, Name, Phone` hai aur Hostel Dept file mein bhi `ID, Name, Phone`. Data do jagah store ho raha hai." },
+            { id: 2, name: "2. Data Inconsistency", tag: "डेटा विसंगति", concept: "Jab duplicate data ko multiple files mein update kiya jata hai aur koi ek dept update karta hai jabki dusra bhool jata hai, toh data contradictory (asaman) ho jata hai.", example: "Student phone number badalta hai. Academic dept update kar leta hai, par Hostel dept purana number hi rakhta hai. Ab system un-reliable hai." },
+            { id: 3, name: "3. Access Difficulty", tag: "एक्सेस कठिनाई", concept: "Conventional systems mein SQL jaisi query language nahi hoti. Har nayi custom search ya filter ke liye developer ko poora naya program likhna padta hai.", example: "Manager ko 'IT dept ke >50k salary wale' log chahiye. DBMS mein 1 line SQL chalegi, par file system mein code likhkar compile karna padega." },
+            { id: 4, name: "4. Data Isolation", tag: "डेटा अलगाव", concept: "Data alag-alag departments, format extensions (.txt, .csv, .xml) aur scattered structures mein bikhra hota hai, jise club karna jatil hota hai.", example: "Accounts .xml use karta hai aur Sales .csv. Dono ko merge karke unified company report banana bohot complex format conversion mangta hai." },
+            { id: 5, name: "5. Constraint Violations", tag: "सत्यनिष्ठा की कमी", concept: "Database constraints (Primary Key, Range checks) file system inherently check nahi karta. Validation application code par nirbhar hota hai.", example: "Agar code mein Age check chhut jaye, toh file system negative age (-5) bhi save kar lega. Koi schema rule block nahi karega." },
+            { id: 6, name: "6. Atomicity Problems", tag: "परमाणुता समस्या", concept: "All-or-Nothing rule. Partial operations (half-writes) crash hone par file systems transaction rollback/undo nahi kar paate.", example: "Bank transfer mein Acc A se debit hua, par B mein credit hone se pehle system power fail ho gaya. Kaise track karein rollback?" },
+            { id: 7, name: "7. Concurrency Anomalies", tag: "समवर्ती विसंगतियां", concept: "Multiple users ek hi file ko ek samay par update karein toh locking system na hone ke kaaran updates lost ho jate hain.", example: "'Lost Update': Seat = 1. User A & B dono ko 1 dikhti hai. Dono book dabate hain. File twice update hoti hai 0 par. Dono ko seat mil gayi." },
+            { id: 8, name: "8. Security Problems", tag: "सुरक्षा सीमाएं", concept: "File level permissions (Read/Write) toh hain, par granular cell-level ya column-level dynamic hiding apply nahi ki ja sakti.", example: "HR executive ko address check karna hai par manager ki salary nahi dekhni chahiye. File system poori file block karega ya poora dikhayega." }
+        ];
+
+        const limBtnContainer = document.getElementById('limitation-buttons-container');
+        const limDisplay = document.getElementById('limitation-display');
+        let activeLimBtn = null;
+
+        limitations.forEach(lim => {
+            const btn = document.createElement('button');
+            btn.className = "lim-nav-btn";
+            btn.innerHTML = `<span>${lim.name}</span>`;
+            
+            btn.addEventListener('click', () => {
+                if(activeLimBtn) {
+                    activeLimBtn.classList.remove('active');
+                }
+                btn.classList.add('active');
+                activeLimBtn = btn;
+
+                limDisplay.innerHTML = `
+                    <div class="fade-in">
+                        <span class="lim-badge">${lim.tag}</span>
+                        <h4 class="lim-pane-title">${lim.name}</h4>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <h5 class="lim-section-head">Concept</h5>
+                                <p class="lim-concept-body">${lim.concept}</p>
+                            </div>
+                            <div>
+                                <h5 class="lim-section-head">Technical Example</h5>
+                                <div class="lim-example-block">${lim.example}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            limBtnContainer.appendChild(btn);
+        });
+        
+        // Auto-select first limitation item
+        limBtnContainer.firstElementChild.click();
+
+        // 3-Schema Details for Pillar 4
+        const schemaData = {
+            external: {
+                title: "External Level (View Schema)",
+                color: "var(--sky-dark)",
+                bg: "var(--sky-light)",
+                border: "var(--sky-border)",
+                desc: "Yeh sabse highest level model representation layer hai jo specific dynamic groups ko database se filtered targeted view limits show karta hai.",
+                struct: "Is level par users ko database ke background complexity processing schema patterns se koi lena-dena nahi hota. Unhe database security tables ke standard simplified view layouts (dashboards) fetch hote hain."
+            },
+            conceptual: {
+                title: "Conceptual / Logical Level",
+                color: "var(--amber-dark)",
+                bg: "var(--amber-light)",
+                border: "var(--amber-border)",
+                desc: "Yeh medium tier complexity model hai jo batata hai ki database mein actually kya data stored hai aur unke beech kya relationships hain.",
+                struct: "Isme design logic database Tables, data fields datatype schemas, Primary-Foreign key relations, aur integrity check validation rules handle hote hain. System database programmer isi layer par kaam karta hai."
+            },
+            physical: {
+                title: "Physical Level",
+                color: "#44403c",
+                bg: "#f5f5f4",
+                border: "#d6d3d1",
+                desc: "Sabse lowest level jo batata hai ki data physical memory (Disks, SSDs) mein kaise store ho raha hai.",
+                struct: "Inme structure details block index limits, storage indexing techniques (B-Trees), data compression algorithms, aur memory data buffers maintain kiye jate hain."
+            }
+        };
+
+        function updateSchemaDetails(layer) {
+            const pane = document.getElementById('schema-details-pane');
+            const data = schemaData[layer];
+            pane.innerHTML = `
+                <div class="fade-in" style="background-color: ${data.bg}; border: 2px solid ${data.border}; border-radius: var(--radius-lg); padding: 24px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                    <h4 style="font-size: 1.5rem; font-weight: 700; color: ${data.color}; margin-bottom: 12px;">${data.title}</h4>
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <p style="color: var(--text-color); font-weight: 500; font-size: 0.95rem;">${data.desc}</p>
+                        <div>
+                            <strong style="color: ${data.color}; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Internal Structure:</strong>
+                            <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.5;">${data.struct}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Chart.js implementation for Section 5
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Schema Structure', 
+                    'Redundancy Control', 
+                    'Data Consistency', 
+                    'Query Speed', 
+                    'Concurrency Handling', 
+                    'Data Security', 
+                    'Data Independence'
+                ],
+                datasets: [{
+                    label: 'Conventional File System',
+                    data: [3, 1, 2, 2, 1, 3, 2],
+                    fill: true,
+                    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                    borderColor: 'rgba(244, 63, 94, 1)',
+                    pointBackgroundColor: 'rgba(244, 63, 94, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(244, 63, 94, 1)'
+                }, {
+                    label: 'DBMS Architecture',
+                    data: [9, 9, 10, 9, 8, 9, 10],
+                    fill: true,
+                    backgroundColor: 'rgba(79, 70, 229, 0.15)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(79, 70, 229, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0,0,0,0.06)' },
+                        grid: { color: 'rgba(0,0,0,0.06)' },
+                        pointLabels: {
+                            font: { family: 'Inter', size: 11, weight: '600' },
+                            color: '#444'
+                        },
+                        ticks: { display: false, min: 0, max: 10 }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Inter', size: 12, weight: '600' },
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.95)',
+                        titleFont: { family: 'Inter', size: 12 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
