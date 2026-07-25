@@ -1,0 +1,517 @@
+/* ==========================================
+   MOBILE-FIRST PROFESSIONAL READING MODE
+   ========================================== */
+
+/* FULLSCREEN READING MODAL CONTAINER */
+.reading-mode-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2000;
+  background-color: var(--reader-bg, #fdfbf7);
+  color: var(--reader-text, #1e293b);
+  overflow: hidden;
+  transition: background-color 300ms ease, color 300ms ease;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.reading-mode-modal.active {
+  display: block;
+}
+
+/* READING THEMES */
+.theme-paper {
+  --reader-bg: #fdfbf7;
+  --reader-text: #1e293b;
+  --reader-accent: #2563eb;
+  --reader-border: #e2e8f0;
+  --reader-topbar-bg: #fdfbf7;
+  --reader-drawer-bg: #ffffff;
+  --reader-card-bg: #f8fafc;
+}
+
+.theme-sepia {
+  --reader-bg: #f4f0ea;
+  --reader-text: #2b261f;
+  --reader-accent: #ea580c;
+  --reader-border: #e4dcd3;
+  --reader-topbar-bg: #f4f0ea;
+  --reader-drawer-bg: #fbf8f3;
+  --reader-card-bg: #efe9e0;
+}
+
+.theme-dark {
+  --reader-bg: #181a1b;
+  --reader-text: #e8e6e3;
+  --reader-accent: #38bdf8;
+  --reader-border: #2a2e33;
+  --reader-topbar-bg: #181a1b;
+  --reader-drawer-bg: #222527;
+  --reader-card-bg: #1e2022;
+}
+
+/* TOP HEADER READER CONTROLS (STRICT 54px HIGH FIXED HEADER) */
+.reader-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 54px;
+  padding: 0 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2025;
+  background-color: var(--reader-topbar-bg, #fdfbf7);
+  border-bottom: 1px solid var(--reader-border, #e2e8f0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.reader-chapter-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--reader-text);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55%;
+}
+
+.btn-reader-peak {
+  background: var(--reader-card-bg);
+  border: 1.5px solid var(--reader-accent);
+  color: var(--reader-accent);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.btn-reader-peak:hover {
+  transform: scale(1.04);
+}
+
+.btn-close-reader {
+  background: var(--reader-bg);
+  border: 1.5px solid var(--reader-border);
+  color: var(--reader-text);
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.btn-close-reader:hover {
+  border-color: var(--reader-accent);
+}
+
+/* VIEWPORT CONTAINER */
+.reader-viewport {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* 1. CONTINUOUS SCROLL FLOW MODE (ZERO FLOATING OVERLAYS - PURE TEXT READABILITY) */
+.reader-viewport.flow-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4.75rem 1.5rem 4rem 1.5rem; /* 76px top margin, 24px sides, 64px bottom */
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.reader-content-body {
+  width: 100%;
+  max-width: 45ch; /* Optimal line length for mobile screens (35-45ch) */
+  line-height: 1.65;
+  font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.25rem); /* Ergonomic Mobile Typography */
+  text-align: left; /* Ragged right to prevent whitespace rivers */
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  word-wrap: break-word;
+  font-feature-settings: "liga" 1, "onum" 1;
+}
+
+.reader-content-body h1 {
+  font-size: 1.65em;
+  margin-top: 0.2em;
+  margin-bottom: 0.75em;
+  color: inherit;
+  line-height: 1.25;
+}
+
+.reader-content-body h2 {
+  font-size: 1.3em;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+  color: inherit;
+  border-bottom: 1px solid var(--reader-border);
+  padding-bottom: 0.3em;
+}
+
+.reader-content-body h3 {
+  font-size: 1.1em;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  color: inherit;
+}
+
+.reader-content-body p {
+  margin-bottom: 1.35em;
+}
+
+.reader-content-body ul, .reader-content-body ol {
+  margin-left: 1.25em;
+  padding-left: 0.25em;
+  margin-bottom: 1.35em;
+}
+
+.reader-content-body blockquote {
+  border-left: 4px solid var(--reader-accent);
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 1.35em;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.reader-content-body pre {
+  background-color: rgba(0,0,0,0.06);
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1.35em;
+  font-size: 0.85em;
+}
+
+.theme-dark .reader-content-body pre {
+  background-color: rgba(255,255,255,0.06);
+}
+
+.reader-content-body code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+/* 2. HORIZONTAL BOOK PAGINATION MODE */
+.reader-viewport.flow-paginated {
+  margin-top: 54px; /* Starts strictly below 54px header bar */
+  height: calc(100vh - 54px);
+  width: 100vw;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  column-width: calc(100vw - 3.5rem);
+  column-gap: 3.5rem;
+  column-fill: auto;
+  padding: 0 1.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reader-viewport.flow-paginated .reader-content-body {
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.reader-viewport.flow-paginated .reader-content-body > * {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  break-inside: avoid;
+}
+
+.reader-viewport.flow-paginated .reader-content-body p,
+.reader-viewport.flow-paginated .reader-content-body h1,
+.reader-viewport.flow-paginated .reader-content-body h2,
+.reader-viewport.flow-paginated .reader-content-body h3,
+.reader-viewport.flow-paginated .reader-content-body blockquote,
+.reader-viewport.flow-paginated .reader-content-body ul,
+.reader-viewport.flow-paginated .reader-content-body ol {
+  break-inside: avoid;
+}
+
+/* ==========================================
+   SLIDE-UP READING PREFERENCES BOTTOM SHEET DRAWER
+   ========================================== */
+
+.reader-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2050;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reader-drawer-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.reader-settings-drawer {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--reader-drawer-bg, #ffffff);
+  color: var(--reader-text);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.25);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.reader-drawer-overlay.active .reader-settings-drawer {
+  transform: translateY(0);
+}
+
+.drawer-drag-handle {
+  width: 42px;
+  height: 5px;
+  background-color: var(--reader-border, #cbd5e1);
+  border-radius: 10px;
+  margin: 0 auto 1rem auto;
+}
+
+.reader-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--reader-border);
+}
+
+.reader-drawer-header h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--reader-text);
+}
+
+.btn-close-drawer-icon {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--reader-text);
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+  transition: opacity 150ms ease;
+}
+
+.btn-close-drawer-icon:hover {
+  opacity: 1;
+}
+
+.drawer-section {
+  margin-bottom: 1.25rem;
+}
+
+.drawer-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+  margin-bottom: 0.6rem;
+}
+
+/* THEME CARDS GRID */
+.theme-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.theme-option-card {
+  background-color: var(--reader-card-bg);
+  border: 2px solid var(--reader-border);
+  border-radius: 14px;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.theme-option-card:hover {
+  border-color: var(--reader-accent);
+  transform: translateY(-2px);
+}
+
+.theme-option-card.active {
+  border-color: var(--reader-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.theme-color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+
+.theme-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--reader-text);
+}
+
+/* FONT SIZE CONTROLS */
+.font-size-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--reader-card-bg);
+  border: 1.5px solid var(--reader-border);
+  border-radius: 16px;
+  padding: 0.4rem 0.6rem;
+}
+
+.font-btn {
+  background: var(--reader-drawer-bg);
+  border: 1.5px solid var(--reader-border);
+  color: var(--reader-text);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.font-btn:hover {
+  border-color: var(--reader-accent);
+  color: var(--reader-accent);
+}
+
+.font-size-indicator {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--reader-text);
+}
+
+/* FLOW MODE GRID */
+.flow-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.flow-option-btn {
+  background-color: var(--reader-card-bg);
+  border: 2px solid var(--reader-border);
+  color: var(--reader-text);
+  border-radius: 14px;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.flow-option-btn:hover {
+  border-color: var(--reader-accent);
+}
+
+.flow-option-btn.active {
+  border-color: var(--reader-accent);
+  background-color: rgba(37, 99, 235, 0.08);
+  color: var(--reader-accent);
+}
+
+/* DRAWER FOOTER WAKE LOCK BADGE */
+.drawer-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.wake-lock-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.12);
+  padding: 0.35rem 0.8rem;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wake-lock-badge.inactive {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+/* RESPONSIVE MOBILE BREAKPOINTS */
+@media (max-width: 520px) {
+  .reader-settings-drawer {
+    padding: 0.85rem 1.15rem 1.25rem 1.15rem;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  .theme-name {
+    font-size: 0.75rem;
+  }
+
+  .flow-option-btn {
+    font-size: 0.78rem;
+    padding: 0.65rem 0.3rem;
+  }
+
+  .reader-viewport.flow-paginated {
+    column-width: calc(100vw - 2.5rem);
+    column-gap: 2.5rem;
+    padding: 0 1.25rem;
+  }
+}

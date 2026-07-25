@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>BCA Digital Logic Academy & Interactive Labs</title>
+  
+  <!-- CDNs for Styles and Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Modular CSS Design System -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/labs.css">
+  <link rel="stylesheet" href="css/reader.css">
+
+  <!-- External Libraries -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <!-- TOP HEADER & PROGRESS SYSTEM -->
+  <header>
+    <button class="btn-mobile-menu" id="btn-mobile-menu" onclick="toggleMobileDrawer(true)" aria-label="Open Navigation Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="logo">
+      <i class="fa-solid fa-microchip"></i>
+      <span>Digital Logic Academy</span>
+    </div>
+    
+    <!-- Unified Subject Selector Dropdown -->
+    <div class="subject-selector-wrapper">
+      <i class="fa-solid fa-graduation-cap" style="color: var(--color-hardware); font-size: 1.1rem;"></i>
+      <select id="subject-select" class="subject-select" onchange="changeSubject(this.value)">
+        <option value="ca">Computer Architecture Helper</option>
+        <option value="daa">Design and Analysis of Algorithms Helper</option>
+        <option value="dbms">DBMS Helper</option>
+      </select>
+    </div>
+    
+    <div class="nav-tabs">
+      <button class="nav-btn active" id="btn-learn" onclick="switchView('learn')">
+        <i class="fa-solid fa-book-open"></i> Learn (Textbook)
+      </button>
+      <button class="nav-btn" id="btn-experiment" onclick="switchView('experiment')">
+        <i class="fa-solid fa-flask"></i> Experiment (Playground)
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <div class="progress-bar-container">
+        <div style="display: flex; justify-content: space-between;">
+          <span id="progress-skill">Foundation</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+      
+      <button class="btn-icon" id="btn-contrast" onclick="toggleContrast()" title="Toggle High Contrast Mode">
+        <i class="fa-solid fa-circle-half-stroke"></i>
+      </button>
+      
+      <button class="btn-icon" id="btn-motion" onclick="toggleMotion()" title="Toggle Reduced Motion Mode">
+        <i class="fa-solid fa-person-running"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAVIGATION DRAWER -->
+  <div class="mobile-drawer-overlay" id="mobile-drawer-overlay" onclick="toggleMobileDrawer(false)">
+    <div class="mobile-drawer" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <h3><i class="fa-solid fa-bars-staggered"></i> Menu</h3>
+        <button class="btn-close-drawer" onclick="toggleMobileDrawer(false)">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <div>
+          <div class="drawer-section-title">Select Subject</div>
+          <select id="mobile-subject-select" class="subject-select" style="width: 100%; min-width: unset;" onchange="changeSubject(this.value); toggleMobileDrawer(false);">
+            <option value="ca">Computer Architecture Helper</option>
+            <option value="daa">Design and Analysis of Algorithms Helper</option>
+            <option value="dbms">DBMS Helper</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="drawer-section-title">Views</div>
+          <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+            <button class="menu-item" onclick="switchView('learn'); toggleMobileDrawer(false);">
+              <i class="fa-solid fa-book-open"></i> Visual Textbook
+            </button>
+            <button class="menu-item" onclick="switchView('experiment'); toggleMobileDrawer(false);">
+              <i class="fa-solid fa-flask"></i> Interactive Playground
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div class="drawer-section-title">Course Roadmap</div>
+          <ul class="sidebar-menu" id="mobile-menu-list">
+            <!-- Dynamic course roadmap loads here -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP INTERFACE LAYOUT -->
+  <div class="app-container">
+    
+    <!-- DESKTOP SIDEBAR MENU: LEARN -->
+    <aside id="sidebar-learn">
+      <div class="sidebar-header">
+        <h3>Course Roadmap</h3>
+      </div>
+      <nav>
+        <ul class="sidebar-menu" id="learn-menu">
+          <!-- Dynamic chapters load here -->
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- DESKTOP SIDEBAR MENU: PLAYGROUND -->
+    <aside id="sidebar-experiment" style="display: none;">
+      <div class="sidebar-header">
+        <h3>Lab Index</h3>
+      </div>
+      <nav>
+        <ul class="sidebar-menu" id="lab-menu">
+          <!-- Dynamic labs list load here -->
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- TEXTBOOK READER VIEW -->
+    <main id="view-learn">
+      <div class="content-card">
+        <div class="content-text" id="learn-article">
+          <!-- Textbook Content renders dynamically here -->
+        </div>
+        <div class="content-footer">
+          <button class="btn-nav-page" id="btn-prev" onclick="prevChapter()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <button class="btn-nav-page next-btn" id="btn-next" onclick="nextChapter()">
+            Next <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- VISUAL PLAYGROUND VIEW -->
+    <main id="view-experiment" class="playground-area" style="display: none;">
+      <div class="playground-card">
+        <div class="playground-header">
+          <div class="playground-title">
+            <h2 id="lab-title">Bit & Switch Simulator</h2>
+            <p id="lab-subtitle">See how voltage states translate directly into a single binary digit.</p>
+          </div>
+          <button class="btn-read-theory" onclick="jumpToTheory()">
+            <i class="fa-solid fa-book-open"></i> Read Theory
+          </button>
+        </div>
+
+        <!-- INTERACTIVE LAB AREA -->
+        <div class="simulator-container" id="sim-container">
+          <!-- Dynamic Simulators render here -->
+        </div>
+
+        <!-- OBSERVATION PANEL -->
+        <div class="observation-panel">
+          <h4><i class="fa-solid fa-magnifying-glass-chart"></i> Observation Panel</h4>
+          <ul class="observation-list" id="observation-list">
+            <!-- Dynamic checks check-off here -->
+          </ul>
+        </div>
+
+        <!-- HARDWARE TIE PANEL -->
+        <div class="hardware-card" id="hardware-panel">
+          <h5><i class="fa-solid fa-server"></i> Real Hardware Tie</h5>
+          <p id="hardware-text">Physical transistors in computer gates perform this exact voltage division.</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- FULL-SCREEN PROFESSIONAL MOBILE READING MODE MODAL -->
+  <div class="reading-mode-modal theme-sepia" id="reading-mode-modal">
+    <!-- Top Header Bar -->
+    <div class="reader-top-bar">
+      <div class="reader-chapter-title" id="reader-chapter-title">Module Reading View</div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button class="btn-reader-peak" onclick="toggleReaderDrawer(true)" title="Customize Display & Reading Mode">
+          <i class="fa-solid fa-sliders"></i> Display
+        </button>
+        <button class="btn-close-reader" onclick="closeReadingMode()">
+          <i class="fa-solid fa-xmark"></i> Exit
+        </button>
+      </div>
+    </div>
+
+    <!-- Reading Viewport -->
+    <div class="reader-viewport flow-scroll" id="reader-viewport">
+      <article class="reader-content-body" id="reader-content-body">
+        <!-- Distraction-free content renders here -->
+      </article>
+    </div>
+
+    <!-- SLIDE-UP READING PREFERENCES DRAWER (BOTTOM SHEET) -->
+    <div class="reader-drawer-overlay" id="reader-drawer-overlay" onclick="handleDrawerOverlayClick(event)">
+      <div class="reader-settings-drawer" id="reader-settings-drawer">
+        <div class="drawer-drag-handle"></div>
+        
+        <div class="reader-drawer-header">
+          <h4><i class="fa-solid fa-sliders"></i> Reading Display Settings</h4>
+          <button class="btn-close-drawer-icon" onclick="toggleReaderDrawer(false)">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Theme Options -->
+        <div class="drawer-section">
+          <label class="drawer-label">Theme</label>
+          <div class="theme-options-grid">
+            <button class="theme-option-card theme-card-sepia active" id="theme-card-sepia" onclick="selectThemeAndClose('sepia')">
+              <span class="theme-color-dot" style="background:#f4f0ea; border:1px solid #d7ccc8;"></span>
+              <span class="theme-name">Warm Sepia</span>
+            </button>
+            <button class="theme-option-card theme-card-paper" id="theme-card-paper" onclick="selectThemeAndClose('paper')">
+              <span class="theme-color-dot" style="background:#ffffff; border:1px solid #cbd5e1;"></span>
+              <span class="theme-name">Clean Paper</span>
+            </button>
+            <button class="theme-option-card theme-card-dark" id="theme-card-dark" onclick="selectThemeAndClose('dark')">
+              <span class="theme-color-dot" style="background:#181a1b; border:1px solid #475569;"></span>
+              <span class="theme-name">Soft Dark</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Font Scaling -->
+        <div class="drawer-section">
+          <label class="drawer-label">Font Size</label>
+          <div class="font-size-control-row">
+            <button class="font-btn" onclick="changeReaderFontSize(-0.1)"><i class="fa-solid fa-minus"></i> A-</button>
+            <span class="font-size-indicator" id="font-size-indicator">100%</span>
+            <button class="font-btn" onclick="changeReaderFontSize(0.1)"><i class="fa-solid fa-plus"></i> A+</button>
+          </div>
+        </div>
+
+        <!-- Flow View Mode -->
+        <div class="drawer-section">
+          <label class="drawer-label">Layout Mode</label>
+          <div class="flow-mode-grid">
+            <button class="flow-option-btn active" id="flow-btn-scroll" onclick="selectFlowAndClose('scroll')">
+              <i class="fa-solid fa-scroll"></i> Vertical Scroll
+            </button>
+            <button class="flow-option-btn" id="flow-btn-paginated" onclick="selectFlowAndClose('paginated')">
+              <i class="fa-solid fa-book-open"></i> Book View (Pages)
+            </button>
+          </div>
+        </div>
+
+        <!-- Wake Lock Footer -->
+        <div class="drawer-footer">
+          <div class="wake-lock-badge" id="wake-lock-badge">
+            <i class="fa-solid fa-sun"></i> Screen Awake Lock Active
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULAR JS DATABASE & APPS -->
+  <script src="textbook_content.js"></script>
+  <script src="js/chapters.js"></script>
+  <script src="js/labs.js"></script>
+  <script src="js/simulators.js"></script>
+  <script src="js/num-converter.js"></script>
+  <script src="js/reader.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
