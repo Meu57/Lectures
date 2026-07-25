@@ -8,6 +8,7 @@ let highContrastActive = false;
 let reducedMotionActive = false;
 let activeLabId = "lab-bit";
 let activeSubject = "ca";
+let isUpdatingHashInternally = false;
 
 /* APPLICATION INITIALIZATION */
 window.onload = function() {
@@ -69,7 +70,102 @@ window.onload = function() {
     viewToSwitch = savedView;
   }
   switchView(viewToSwitch);
+
+  // Deep-linking URL Hash Route check (Overrides localStorage if direct URL hash is present)
+  const hasRouted = handleUrlHashRoute();
+  if (!hasRouted) {
+    updateUrlHash(true);
+  }
+
+  // Handle browser Back/Forward navigation & URL Hash changes
+  window.addEventListener("hashchange", function() {
+    if (!isUpdatingHashInternally) {
+      handleUrlHashRoute();
+    }
+  });
 };
+
+/* URL HASH ROUTING & DEEP LINKING SYSTEM */
+function updateUrlHash(replace = false) {
+  isUpdatingHashInternally = true;
+  let targetHash = "";
+  if (currentView === "experiment") {
+    targetHash = `#lab/${activeLabId}`;
+  } else {
+    const ch = CHAPTERS[currentChapterIndex];
+    const chId = (ch && ch.id) ? ch.id : currentChapterIndex;
+    targetHash = `#learn/${chId}`;
+  }
+
+  if (window.location.hash !== targetHash) {
+    if (replace && window.history.replaceState) {
+      window.history.replaceState(null, "", targetHash);
+    } else {
+      window.location.hash = targetHash;
+    }
+  }
+
+  setTimeout(() => { isUpdatingHashInternally = false; }, 50);
+}
+
+function handleUrlHashRoute() {
+  const hash = window.location.hash.trim();
+  if (!hash || hash === "#") return false;
+
+  const clean = hash.replace(/^#\/?/, "");
+  const parts = clean.split("/");
+  if (parts.length === 0) return false;
+
+  const routeType = parts[0].toLowerCase();
+  const routeParam = parts[1] ? decodeURIComponent(parts[1].trim()) : "";
+
+  if (routeType === "lab" || routeType === "experiment") {
+    const targetLabId = routeParam || activeLabId;
+    const lab = LABS.find(l => l.id === targetLabId);
+    if (lab) {
+      activeLabId = lab.id;
+      if (lab.subject && ["ca", "daa", "dbms"].includes(lab.subject)) {
+        activeSubject = lab.subject;
+        const selector = document.getElementById("subject-select");
+        if (selector) selector.value = activeSubject;
+        const mobileSelector = document.getElementById("mobile-subject-select");
+        if (mobileSelector) mobileSelector.value = activeSubject;
+      }
+      switchView("experiment");
+      loadLab(activeLabId);
+      renderSidebarMenu();
+      return true;
+    }
+  } else if (routeType === "learn" || routeType === "chapter" || routeType === "module") {
+    if (routeParam) {
+      let idx = -1;
+      const numParsed = parseInt(routeParam, 10);
+      if (!isNaN(numParsed) && numParsed >= 0 && numParsed < CHAPTERS.length) {
+        idx = numParsed;
+      } else {
+        idx = CHAPTERS.findIndex(c => c.id === routeParam);
+      }
+
+      if (idx !== -1) {
+        currentChapterIndex = idx;
+        const ch = CHAPTERS[idx];
+        if (ch && ch.subject) {
+          activeSubject = ch.subject;
+          const selector = document.getElementById("subject-select");
+          if (selector) selector.value = activeSubject;
+          const mobileSelector = document.getElementById("mobile-subject-select");
+          if (mobileSelector) mobileSelector.value = activeSubject;
+        }
+        switchView("learn");
+        loadChapter(currentChapterIndex);
+        renderSidebarMenu();
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 /* SUBJECT SELECTION */
 function changeSubject(subject) {
@@ -113,6 +209,7 @@ function changeSubject(subject) {
   if (currentView === "experiment") {
     loadLab(activeLabId);
   }
+  updateUrlHash();
 }
 
 /* VIEW SWITCHING (LEARN VS EXPERIMENT) */
@@ -148,26 +245,28 @@ function switchView(view) {
     if (btnE) btnE.classList.add("active");
     loadLab(activeLabId);
   }
+
+  renderSidebarMenu();
+  updateUrlHash();
 }
 
 /* SIDEBAR & MOBILE DRAWER MENU RENDERER */
 function renderSidebarMenu() {
   const menu = document.getElementById("learn-menu");
-  if (!menu) return;
-  menu.innerHTML = "";
-  
-  const filteredChapters = CHAPTERS.filter(ch => ch.subject === activeSubject);
-  
-  filteredChapters.forEach((ch) => {
-    const globalIdx = CHAPTERS.indexOf(ch);
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <button class="menu-item ${globalIdx === currentChapterIndex ? 'active' : ''}" onclick="selectChapter(${globalIdx})">
-        <i class="fa-solid fa-circle-check"></i> ${ch.shortLabel || ch.title.split(":")[0]}
-      </button>
-    `;
-    menu.appendChild(li);
-  });
+  if (menu) {
+    menu.innerHTML = "";
+    const filteredChapters = CHAPTERS.filter(ch => ch.subject === activeSubject);
+    filteredChapters.forEach((ch) => {
+      const globalIdx = CHAPTERS.indexOf(ch);
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <button class="menu-item ${currentView === 'learn' && globalIdx === currentChapterIndex ? 'active' : ''}" onclick="selectChapter(${globalIdx})">
+          <i class="fa-solid fa-circle-check"></i> ${ch.shortLabel || ch.title.split(":")[0]}
+        </button>
+      `;
+      menu.appendChild(li);
+    });
+  }
 
   const labMenu = document.getElementById("lab-menu");
   if (labMenu) {
@@ -178,7 +277,7 @@ function renderSidebarMenu() {
     filteredLabs.forEach(lab => {
       const li = document.createElement("li");
       li.innerHTML = `
-        <button class="menu-item ${lab.id === activeLabId ? 'active' : ''}" onclick="selectLab('${lab.id}')" id="btn-lab-item-${lab.id}">
+        <button class="menu-item ${currentView === 'experiment' && lab.id === activeLabId ? 'active' : ''}" onclick="selectLab('${lab.id}')" id="btn-lab-item-${lab.id}">
           <i class="fa-solid fa-flask"></i> ${lab.title}
         </button>
       `;
@@ -195,13 +294,37 @@ function renderMobileDrawerMenu() {
   if (!drawerList) return;
   drawerList.innerHTML = "";
 
+  // 1. Chapters/Modules section
+  const modHeader = document.createElement("li");
+  modHeader.style.cssText = "font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.05em; margin:0.5rem 0 0.35rem 0;";
+  modHeader.innerHTML = "📖 Modules (Textbook)";
+  drawerList.appendChild(modHeader);
+
   const filteredChapters = CHAPTERS.filter(ch => ch.subject === activeSubject);
   filteredChapters.forEach((ch) => {
     const globalIdx = CHAPTERS.indexOf(ch);
     const li = document.createElement("li");
     li.innerHTML = `
-      <button class="menu-item ${globalIdx === currentChapterIndex ? 'active' : ''}" onclick="selectChapter(${globalIdx}); toggleMobileDrawer(false);">
-        <i class="fa-solid fa-book"></i> ${ch.shortLabel || ch.title}
+      <button class="menu-item ${currentView === 'learn' && globalIdx === currentChapterIndex ? 'active' : ''}" onclick="selectChapter(${globalIdx}); toggleMobileDrawer(false);">
+        <i class="fa-solid fa-book"></i> ${ch.shortLabel || ch.title.split(":")[0]}
+      </button>
+    `;
+    drawerList.appendChild(li);
+  });
+
+  // 2. Interactive Labs section
+  const labHeader = document.createElement("li");
+  labHeader.style.cssText = "font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.05em; margin:1.25rem 0 0.35rem 0;";
+  labHeader.innerHTML = "🧪 Interactive Labs";
+  drawerList.appendChild(labHeader);
+
+  let filteredLabs = LABS.filter(l => l.subject === activeSubject);
+  if (filteredLabs.length === 0) filteredLabs = LABS;
+  filteredLabs.forEach((lab) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <button class="menu-item ${currentView === 'experiment' && lab.id === activeLabId ? 'active' : ''}" onclick="selectLab('${lab.id}'); toggleMobileDrawer(false);">
+        <i class="fa-solid fa-flask"></i> ${lab.title}
       </button>
     `;
     drawerList.appendChild(li);
@@ -223,8 +346,11 @@ function toggleMobileDrawer(open) {
 
 /* CHAPTER NAVIGATION & LOADING */
 function selectChapter(idx) {
+  currentChapterIndex = idx;
   loadChapter(idx);
   switchView("learn");
+  renderSidebarMenu();
+  updateUrlHash();
 }
 
 function loadChapter(idx) {
@@ -326,7 +452,7 @@ function nextChapter() {
   const currentFilteredIdx = filteredChapters.indexOf(ch);
   if (currentFilteredIdx !== -1 && currentFilteredIdx < filteredChapters.length - 1) {
     const nextCh = filteredChapters[currentFilteredIdx + 1];
-    loadChapter(CHAPTERS.indexOf(nextCh));
+    selectChapter(CHAPTERS.indexOf(nextCh));
   }
 }
 
@@ -336,7 +462,7 @@ function prevChapter() {
   const currentFilteredIdx = filteredChapters.indexOf(ch);
   if (currentFilteredIdx !== -1 && currentFilteredIdx > 0) {
     const prevCh = filteredChapters[currentFilteredIdx - 1];
-    loadChapter(CHAPTERS.indexOf(prevCh));
+    selectChapter(CHAPTERS.indexOf(prevCh));
   }
 }
 
@@ -350,6 +476,8 @@ function selectLab(labId) {
   }
   loadLab(labId);
   switchView("experiment");
+  renderSidebarMenu();
+  updateUrlHash();
 }
 
 function loadLab(labId) {
@@ -422,7 +550,10 @@ function goToLab(labId) {
   } catch (e) {
     console.warn("Could not save activeLabId to storage:", e);
   }
+  loadLab(labId);
   switchView("experiment");
+  renderSidebarMenu();
+  updateUrlHash();
 }
 
 function jumpToTheory() {
