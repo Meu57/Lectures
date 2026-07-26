@@ -9,17 +9,19 @@ let reducedMotionActive = false;
 let activeLabId = "lab-bit";
 let activeSubject = "ca";
 let isUpdatingHashInternally = false;
+let isInitialized = false;
 
 /* APPLICATION INITIALIZATION */
-window.onload = function() {
+function initApp() {
+  if (isInitialized) return;
+  isInitialized = true;
+
   let savedChapter = null;
-  let savedView = null;
   let savedLab = null;
   let savedSubject = null;
   
   try {
     savedChapter = localStorage.getItem("activeChapterIndex");
-    savedView = localStorage.getItem("activeView");
     savedLab = localStorage.getItem("activeLabId");
     savedSubject = localStorage.getItem("activeSubject");
   } catch (e) {
@@ -65,25 +67,38 @@ window.onload = function() {
   loadChapter(currentChapterIndex);
   setupAccessibility();
 
-  let viewToSwitch = "learn";
-  if (savedView === "learn" || savedView === "experiment") {
-    viewToSwitch = savedView;
-  }
-  switchView(viewToSwitch);
-
-  // Deep-linking URL Hash Route check (Overrides localStorage if direct URL hash is present)
+  // CRITICAL MOBILE FIX: Check URL Hash Route FIRST before applying localStorage savedView!
+  // If user opens a direct URL (e.g. #lab/lab-numconv), URL Hash route MUST take precedence.
   const hasRouted = handleUrlHashRoute();
   if (!hasRouted) {
+    let savedView = null;
+    try {
+      savedView = localStorage.getItem("activeView");
+    } catch (e) {}
+
+    let viewToSwitch = "learn";
+    if (savedView === "learn" || savedView === "experiment") {
+      viewToSwitch = savedView;
+    }
+    switchView(viewToSwitch);
     updateUrlHash(true);
   }
 
-  // Handle browser Back/Forward navigation & URL Hash changes
+  // Handle browser Back/Forward navigation & URL Hash changes dynamically
   window.addEventListener("hashchange", function() {
     if (!isUpdatingHashInternally) {
       handleUrlHashRoute();
     }
   });
-};
+}
+
+// Trigger initialization on DOMReady or Window Load (whichever happens first)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
+window.onload = initApp;
 
 /* URL HASH ROUTING & DEEP LINKING SYSTEM */
 function updateUrlHash(replace = false) {
@@ -109,15 +124,32 @@ function updateUrlHash(replace = false) {
 }
 
 function handleUrlHashRoute() {
-  const hash = window.location.hash.trim();
-  if (!hash || hash === "#") return false;
+  const hash = (window.location.hash || "").trim();
+  if (!hash || hash === "#" || hash === "#/") return false;
 
+  // Clean hash string: remove leading # and slashes
   const clean = hash.replace(/^#\/?/, "");
-  const parts = clean.split("/");
+  const parts = clean.split("/").filter(Boolean);
   if (parts.length === 0) return false;
 
-  const routeType = parts[0].toLowerCase();
-  const routeParam = parts[1] ? decodeURIComponent(parts[1].trim()) : "";
+  let routeType = parts[0].toLowerCase();
+  let routeParam = parts[1] ? decodeURIComponent(parts[1].trim()) : "";
+
+  // Support single-part hash formats (e.g. #lab-numconv or #conversions-dec-bin)
+  if (parts.length === 1) {
+    const singleParam = parts[0];
+    const directLab = LABS.find(l => l.id === singleParam);
+    if (directLab) {
+      routeType = "lab";
+      routeParam = singleParam;
+    } else {
+      const directChIdx = CHAPTERS.findIndex(c => c.id === singleParam);
+      if (directChIdx !== -1) {
+        routeType = "learn";
+        routeParam = singleParam;
+      }
+    }
+  }
 
   if (routeType === "lab" || routeType === "experiment") {
     const targetLabId = routeParam || activeLabId;
@@ -134,6 +166,7 @@ function handleUrlHashRoute() {
       switchView("experiment");
       loadLab(activeLabId);
       renderSidebarMenu();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return true;
     }
   } else if (routeType === "learn" || routeType === "chapter" || routeType === "module") {
@@ -159,6 +192,7 @@ function handleUrlHashRoute() {
         switchView("learn");
         loadChapter(currentChapterIndex);
         renderSidebarMenu();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return true;
       }
     }

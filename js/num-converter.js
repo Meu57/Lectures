@@ -36,14 +36,14 @@ function injectNumConverterStyles() {
     .numconv-input-wrap { display:flex; margin-bottom:1rem; }
     .numconv-input {
       flex:1; background:#0f172a; border:2px solid #334155; border-radius:10px;
-      padding:0.7rem 1rem; font-size:1.1rem; font-family:'Fira Code',monospace;
+      padding:0.7rem 1rem; font-size:clamp(0.95rem, 0.85rem + 0.5vw, 1.15rem); font-family:'Fira Code',monospace;
       font-weight:600; color:#f8fafc; outline:none; width:100%;
       transition:border-color 200ms ease; letter-spacing:0.05em;
     }
     .numconv-input:focus { border-color:#38bdf8; }
     .numconv-input::placeholder {
       color:#475569; font-weight:400; font-family:'Inter',sans-serif;
-      font-size:0.88rem; letter-spacing:0;
+      font-size:clamp(0.78rem, 0.72rem + 0.25vw, 0.88rem); letter-spacing:0;
     }
     .numconv-selectors {
       display:flex; align-items:flex-end; gap:0.5rem;
@@ -51,13 +51,13 @@ function injectNumConverterStyles() {
     }
     .numconv-selector-group { flex:1; min-width:130px; }
     .numconv-selector-group label {
-      display:block; font-size:0.7rem; font-weight:700;
+      display:block; font-size:clamp(0.65rem, 0.62rem + 0.15vw, 0.72rem); font-weight:700;
       text-transform:uppercase; letter-spacing:0.08em;
       color:#94a3b8; margin-bottom:0.3rem;
     }
     .numconv-select {
       width:100%; background:#0f172a; border:2px solid #334155; border-radius:10px;
-      padding:0.55rem 0.8rem; font-size:0.88rem; font-weight:600;
+      padding:0.55rem 0.8rem; font-size:clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem); font-weight:600;
       color:#e2e8f0; outline:none; cursor:pointer;
       transition:border-color 200ms ease; -webkit-appearance:none; appearance:none;
     }
@@ -71,7 +71,7 @@ function injectNumConverterStyles() {
     .numconv-swap-btn:hover { background:#38bdf8; color:#0f172a; transform:rotate(180deg); }
     .numconv-convert-btn {
       width:100%; background:linear-gradient(135deg,#0ea5e9,#6366f1);
-      border:none; border-radius:12px; padding:0.9rem; font-size:1rem;
+      border:none; border-radius:12px; padding:0.9rem; font-size:clamp(0.88rem, 0.82rem + 0.35vw, 1.05rem);
       font-weight:800; color:#fff; cursor:pointer; transition:all 200ms ease;
       letter-spacing:0.03em;
     }
@@ -83,7 +83,7 @@ function injectNumConverterStyles() {
     /* Error */
     .numconv-error {
       background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4);
-      border-radius:10px; padding:0.75rem 1rem; font-size:0.9rem;
+      border-radius:10px; padding:0.75rem 1rem; font-size:clamp(0.82rem, 0.78rem + 0.2vw, 0.9rem);
       color:#fca5a5; font-weight:600; display:none; margin-bottom:1rem;
     }
     .numconv-error.visible { display:block; }
@@ -99,12 +99,12 @@ function injectNumConverterStyles() {
     }
     .nc-card.visible { opacity:1; transform:translateY(0); }
     .nc-card-badge {
-      font-size:0.7rem; font-weight:800; text-transform:uppercase;
+      font-size:clamp(0.65rem, 0.62rem + 0.15vw, 0.72rem); font-weight:800; text-transform:uppercase;
       letter-spacing:0.08em; color:#38bdf8; margin-bottom:0.5rem;
       display:flex; align-items:center; gap:0.4rem;
     }
-    .nc-card-title { font-size:0.98rem; font-weight:700; color:#f8fafc; margin-bottom:0.25rem; }
-    .nc-card-sub { font-size:0.82rem; color:#94a3b8; line-height:1.55; margin-bottom:0.85rem; }
+    .nc-card-title { font-size:clamp(0.9rem, 0.84rem + 0.3vw, 1.05rem); font-weight:700; color:#f8fafc; margin-bottom:0.25rem; }
+    .nc-card-sub { font-size:clamp(0.78rem, 0.74rem + 0.2vw, 0.85rem); color:#94a3b8; line-height:1.55; margin-bottom:0.85rem; }
 
     /* Result Banner */
     .nc-result-banner {
@@ -112,11 +112,11 @@ function injectNumConverterStyles() {
       border:2px solid #38bdf8; border-radius:14px; padding:1.25rem; text-align:center;
     }
     .nc-result-label {
-      font-size:0.72rem; font-weight:800; text-transform:uppercase;
+      font-size:clamp(0.68rem, 0.64rem + 0.15vw, 0.75rem); font-weight:800; text-transform:uppercase;
       letter-spacing:0.1em; color:#38bdf8; margin-bottom:0.5rem;
     }
     .nc-result-value {
-      font-size:1.9rem; font-weight:900; font-family:'Fira Code',monospace;
+      font-size:clamp(1.3rem, 1.05rem + 1.6vw, 2.1rem); font-weight:900; font-family:'Fira Code',monospace;
       color:#f8fafc; letter-spacing:0.08em; word-break:break-all;
     }
     .nc-result-sub { font-size:0.83rem; color:#94a3b8; font-weight:600; margin-top:0.3rem; }
