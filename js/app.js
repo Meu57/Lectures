@@ -425,7 +425,7 @@ function loadChapter(idx) {
 
   if (ch.labId) {
     html += `
-      <div style="margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <div style="margin-top: 2.5rem; margin-bottom: 1rem; padding-top: 1.5rem; padding-bottom: 0.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 1rem; flex-wrap: wrap; clear: both;">
         <button class="btn-action-lab" onclick="goToLab('${ch.labId}')">
           <i class="fa-solid fa-flask"></i> Try in Lab! 🧪
         </button>
@@ -435,6 +435,7 @@ function loadChapter(idx) {
       </div>
     `;
   }
+
   
   article.innerHTML = html;
   
@@ -462,7 +463,13 @@ function loadChapter(idx) {
   const nextBtn = document.getElementById("btn-next");
 
   if (prevBtn) prevBtn.disabled = currentFilteredIdx === 0;
-  if (nextBtn) nextBtn.innerText = currentFilteredIdx === filteredChapters.length - 1 ? "Finish" : "Next";
+  if (nextBtn) {
+    nextBtn.disabled = currentFilteredIdx === filteredChapters.length - 1;
+    const isLast = currentFilteredIdx === filteredChapters.length - 1;
+    nextBtn.innerHTML = isLast
+      ? `<i class="fa-solid fa-flag-checkered"></i> <span class="btn-label">Finish</span>`
+      : `<span class="btn-label">Next</span> <i class="fa-solid fa-arrow-right"></i>`;
+  }
 
   // Render KaTeX markup
   setTimeout(() => {

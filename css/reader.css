@@ -23,6 +23,22 @@
   display: block;
 }
 
+/* ==========================================
+   RESPONSIVE BUTTON LABEL UTILITY
+   Icon-only on mobile, icon+text on larger screens
+   Mobile-first: hide text by default, show at breakpoint
+   ========================================== */
+.btn-label {
+  display: none; /* Hidden on mobile — icon only */
+}
+
+/* Show label text from 460px and wider */
+@media (min-width: 460px) {
+  .btn-label {
+    display: inline;
+  }
+}
+
 /* READING THEMES */
 .theme-paper {
   --reader-bg: #fdfbf7;
@@ -144,14 +160,28 @@
 
 .reader-content-body {
   width: 100%;
-  max-width: 45ch; /* Optimal line length for mobile screens (35-45ch) */
-  line-height: 1.65;
-  font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.25rem); /* Ergonomic Mobile Typography */
-  text-align: left; /* Ragged right to prevent whitespace rivers */
+  max-width: 45ch;
+  /* WCAG text spacing via CSS variables — easy to override in accessibility settings */
+  --reader-letter-spacing: 0.012em;
+  --reader-word-spacing: 0.016em;
+  --reader-paragraph-spacing: 2em;
+  --reader-line-height: 1.60; /* Comfortable default */
+  line-height: var(--reader-line-height);
+  letter-spacing: var(--reader-letter-spacing);
+  word-spacing: var(--reader-word-spacing);
+  font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.25rem);
+  text-align: left;
   hyphens: auto;
   -webkit-hyphens: auto;
   word-wrap: break-word;
-  font-feature-settings: "liga" 1, "onum" 1;
+  /* Phase 3: OpenType features — ligatures, oldstyle nums, kerning */
+  font-feature-settings: "liga" 1, "onum" 1, "kern" 1;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  font-variant-numeric: oldstyle-nums;
+  /* Widows & Orphans — best effort (browser support inconsistent) */
+  widows: 3;
+  orphans: 3;
 }
 
 .reader-content-body h1 {
@@ -178,8 +208,9 @@
   color: inherit;
 }
 
-.reader-content-body p {
-  margin-bottom: 1.35em;
+.reader-content-body > p {
+  /* margin-block-end avoids nested element margin inheritance (not margin-bottom) */
+  margin-block-end: var(--reader-paragraph-spacing);
 }
 
 .reader-content-body ul, .reader-content-body ol {
@@ -213,6 +244,151 @@
 .reader-content-body code {
   font-family: 'Fira Code', monospace;
   font-size: 0.9em;
+}
+
+/* ==========================================
+   FONT FAMILY — SANS / SERIF TOGGLE
+   ========================================== */
+.reader-font-sans .reader-content-body,
+.reader-font-sans .reader-content-body p {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.reader-font-serif .reader-content-body,
+.reader-font-serif .reader-content-body p {
+  font-family: 'Merriweather', 'Georgia', 'Times New Roman', serif;
+  line-height: calc(var(--reader-line-height) * 1.05); /* Serif needs slightly more leading */
+}
+
+/* ==========================================
+   LINE HEIGHT PRESETS
+   ========================================== */
+.reader-lh-compact .reader-content-body  { --reader-line-height: 1.45; }
+.reader-lh-comfortable .reader-content-body { --reader-line-height: 1.60; }
+.reader-lh-relaxed .reader-content-body  { --reader-line-height: 1.80; }
+
+/* ==========================================
+   SCROLL PROGRESS BAR
+   ========================================== */
+.reader-progress-bar {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--reader-accent, #ea580c);
+  z-index: 2026;
+  pointer-events: none;
+  /* No CSS transition — updated via requestAnimationFrame for smoothness */
+}
+
+/* ==========================================
+   PAGE COUNTER BADGE
+   ========================================== */
+.reader-page-counter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--reader-text);
+  opacity: 0.7;
+  background: var(--reader-card-bg);
+  border: 1px solid var(--reader-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================
+   READING TIME BADGE
+   ========================================== */
+.reader-time-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--reader-text);
+  opacity: 0.55;
+  white-space: nowrap;
+  display: none; /* shown via JS when reading mode opens */
+}
+
+@media (min-width: 400px) {
+  .reader-time-badge { display: inline; }
+}
+
+/* ==========================================
+   CHAPTER END BANNER
+   ========================================== */
+.reader-chapter-end-banner {
+  width: 100%;
+  max-width: 45ch;
+  padding: 2rem 0 3rem 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chapter-end-rule {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--reader-border);
+  margin-bottom: 0.5rem;
+}
+
+.chapter-end-msg {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin: 0;
+}
+
+.btn-chapter-continue {
+  background: var(--reader-accent);
+  color: white;
+  border: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 180ms ease;
+  min-height: 44px;
+}
+
+.btn-chapter-continue:hover {
+  opacity: 0.85;
+}
+
+/* ==========================================
+   KATEX MATH EQUATIONS - MOBILE OVERFLOW FIX
+   Prevent LaTeX from spilling outside container
+   at any font size in the reader.
+   ========================================== */
+
+/* Block / display-mode math wrapper */
+.reader-content-body .katex-display {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 1em 0;
+}
+
+/* KaTeX html inner element - must never exceed parent */
+.reader-content-body .katex-display .katex-html {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Inline math - allow natural flow but clip if extremely wide */
+.reader-content-body .katex:not(.katex-display .katex) {
+  max-width: 100%;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: middle;
 }
 
 /* 2. HORIZONTAL BOOK PAGINATION MODE */
@@ -514,4 +690,35 @@
     column-gap: 2.5rem;
     padding: 0 1.25rem;
   }
+}
+
+/* ==========================================
+   REDUCED MOTION — Disable all reader animations
+   Respects both OS preference and manual toggle
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  .reader-settings-drawer,
+  .reader-drawer-overlay,
+  .reading-mode-modal,
+  .btn-chapter-continue,
+  .flow-option-btn,
+  .theme-option-card,
+  .btn-reader-peak,
+  .btn-close-reader {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Also triggered by existing body.reduced-motion class (manual toggle in app) */
+.reduced-motion .reader-settings-drawer,
+.reduced-motion .reader-drawer-overlay,
+.reduced-motion .reading-mode-modal,
+.reduced-motion .btn-chapter-continue,
+.reduced-motion .flow-option-btn,
+.reduced-motion .theme-option-card,
+.reduced-motion .btn-reader-peak,
+.reduced-motion .btn-close-reader {
+  transition: none !important;
+  animation: none !important;
 }
