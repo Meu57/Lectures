@@ -103,6 +103,8 @@ const LABS = [
     id: "lab-numconv",
     title: "Number System Conversion Lab",
     subtitle: "Visually convert between Binary, Decimal, Octal & Hexadecimal with animated step-by-step breakdowns.",
+    subject: "ca",
+    theoryChapterId: "conversions-dec-bin",
     prediction: {
       question: "Why does Binary → Octal conversion group bits in sets of 3?",
       options: ["Because Octal = Base 8 = 2³ (3 bits exactly represent 0–7)", "Because binary has 3 digits", "Because octal is used in groups of 3 for historical reasons"],

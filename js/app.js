@@ -598,7 +598,17 @@ function goToLab(labId) {
 }
 
 function jumpToTheory() {
-  const idx = CHAPTERS.findIndex(ch => ch.labId === activeLabId);
+  // Primary lookup: find chapter whose labId matches this lab
+  let idx = CHAPTERS.findIndex(ch => ch.labId === activeLabId);
+
+  // Fallback: check if the lab itself has a theoryChapterId set
+  if (idx === -1) {
+    const lab = LABS.find(l => l.id === activeLabId);
+    if (lab && lab.theoryChapterId) {
+      idx = CHAPTERS.findIndex(ch => ch.id === lab.theoryChapterId);
+    }
+  }
+
   if (idx !== -1) {
     selectChapter(idx);
   }

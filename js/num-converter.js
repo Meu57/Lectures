@@ -758,6 +758,40 @@ function swapNumConvBases() {
 function setupLabNumConverter(container) {
   injectNumConverterStyles();
 
+  // Inject hint row CSS
+  if (!document.getElementById("numconv-hint-styles")) {
+    const s = document.createElement("style");
+    s.id = "numconv-hint-styles";
+    s.textContent = `
+      .numconv-hint-row {
+        display: flex; gap: 0.4rem; flex-wrap: wrap;
+        margin-bottom: 0.85rem; min-height: 28px;
+      }
+      .numconv-hint-badge {
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        padding: 0.2rem 0.55rem; border-radius: 20px;
+        font-size: clamp(0.68rem, 0.64rem + 0.2vw, 0.78rem);
+        font-weight: 700; letter-spacing: 0.02em;
+        transition: opacity 180ms ease, transform 180ms ease;
+        border: 1.5px solid transparent;
+      }
+      .numconv-hint-badge.valid {
+        background: rgba(74,222,128,0.12); border-color: #4ade80;
+        color: #4ade80;
+      }
+      .numconv-hint-badge.invalid {
+        background: rgba(71,85,105,0.1); border-color: #334155;
+        color: #475569; opacity: 0.55;
+      }
+      .numconv-hint-label {
+        font-size: clamp(0.65rem, 0.62rem + 0.12vw, 0.72rem);
+        color: #64748b; font-weight: 600; align-self: center;
+        white-space: nowrap;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
   container.innerHTML = `
     <div class="numconv-lab">
       <div class="numconv-input-panel">
@@ -765,6 +799,15 @@ function setupLabNumConverter(container) {
           <input class="numconv-input" id="numconv-input" type="text"
             placeholder="Enter a number (e.g. 1010, 255, FF, 377) …"
             autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"/>
+        </div>
+
+        <!-- Real-time base compatibility hints -->
+        <div class="numconv-hint-row" id="numconv-hint-row">
+          <span class="numconv-hint-label">Valid in:</span>
+          <span class="numconv-hint-badge invalid" id="hint-bin">✗ Binary</span>
+          <span class="numconv-hint-badge invalid" id="hint-oct">✗ Octal</span>
+          <span class="numconv-hint-badge invalid" id="hint-dec">✗ Decimal</span>
+          <span class="numconv-hint-badge invalid" id="hint-hex">✗ Hex</span>
         </div>
 
         <div class="numconv-selectors">
@@ -803,5 +846,40 @@ function setupLabNumConverter(container) {
 
   // Enter key shortcut
   const inp = container.querySelector("#numconv-input");
-  if (inp) inp.addEventListener("keydown", e => { if (e.key === "Enter") runNumConversion(); });
+  if (inp) {
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") runNumConversion(); });
+
+    // Real-time hint updater
+    inp.addEventListener("input", updateNumConvHints);
+  }
 }
+
+/**
+ * Updates the 4 base-compatibility hint badges in real time as user types.
+ * Does NOT auto-select any base — user always has full control.
+ * Example: "11111" → ✅ Binary ✅ Octal ✅ Decimal ✅ Hex
+ *          "1254"  → ✗  Binary ✗  Octal ✅ Decimal ✅ Hex
+ *          "1F3A"  → ✗  Binary ✗  Octal ✗  Decimal ✅ Hex
+ */
+function updateNumConvHints() {
+  const raw = (document.getElementById("numconv-input") || {}).value || "";
+  const v   = raw.trim();
+
+  const checks = {
+    bin: /^[01]+$/.test(v),
+    oct: /^[0-7]+$/.test(v),
+    dec: /^[0-9]+$/.test(v),
+    hex: /^[0-9A-Fa-f]+$/.test(v)
+  };
+
+  const labels = { bin: "Binary", oct: "Octal", dec: "Decimal", hex: "Hex" };
+
+  Object.keys(checks).forEach(base => {
+    const badge = document.getElementById("hint-" + base);
+    if (!badge) return;
+    const ok = v.length > 0 && checks[base];
+    badge.className = "numconv-hint-badge " + (ok ? "valid" : "invalid");
+    badge.textContent = (ok ? "✓ " : "✗ ") + labels[base];
+  });
+}
+
