@@ -236,6 +236,29 @@ function injectNumConverterStyles() {
       .exp-digit { font-size:0.95rem; min-width:28px; }
       .numconv-input { font-size:1rem; }
     }
+
+    /* ── RESPONSIVE LABELS ──────────────────────────────────────────── */
+    /* Field labels (From / To) */
+    .nc-label-short { display: none; }
+    .nc-label-full  { display: inline; }
+
+    /* Convert button label spans */
+    .nc-btn-short { display: none; }
+    .nc-btn-full  { display: inline; }
+
+    @media (max-width:460px) {
+      /* Field labels: show short, hide full */
+      .nc-label-short { display: inline; }
+      .nc-label-full  { display: none; }
+
+      /* Convert button: show short, hide full */
+      .nc-btn-short { display: inline; }
+      .nc-btn-full  { display: none; }
+
+      /* Input placeholder shorter — handled in HTML */
+      /* Selector groups: allow narrower */
+      .numconv-selector-group { min-width: 100px; }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -797,7 +820,7 @@ function setupLabNumConverter(container) {
       <div class="numconv-input-panel">
         <div class="numconv-input-wrap">
           <input class="numconv-input" id="numconv-input" type="text"
-            placeholder="Enter a number (e.g. 1010, 255, FF, 377) …"
+            placeholder="Enter number… (e.g. 1010, 255, FF)"
             autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"/>
         </div>
 
@@ -812,7 +835,11 @@ function setupLabNumConverter(container) {
 
         <div class="numconv-selectors">
           <div class="numconv-selector-group">
-            <label>From Number System</label>
+            <!-- Label: full on ≥460px, short on mobile -->
+            <label>
+              <span class="nc-label-full">From Number System</span>
+              <span class="nc-label-short">From</span>
+            </label>
             <select class="numconv-select" id="numconv-from">
               <option value="bin">Binary (Base 2)</option>
               <option value="dec" selected>Decimal (Base 10)</option>
@@ -824,7 +851,10 @@ function setupLabNumConverter(container) {
           <div class="numconv-swap-btn" onclick="swapNumConvBases()" title="Swap ↔">⇄</div>
 
           <div class="numconv-selector-group">
-            <label>To Number System</label>
+            <label>
+              <span class="nc-label-full">To Number System</span>
+              <span class="nc-label-short">To</span>
+            </label>
             <select class="numconv-select" id="numconv-to">
               <option value="bin" selected>Binary (Base 2)</option>
               <option value="dec">Decimal (Base 10)</option>
@@ -835,7 +865,9 @@ function setupLabNumConverter(container) {
         </div>
 
         <button class="numconv-convert-btn" onclick="runNumConversion()">
-          ▶ Convert — Show Step by Step
+          <!-- Two label spans — CSS shows the right one per viewport -->
+          <span class="nc-btn-full">▶ Convert — Show Step by Step</span>
+          <span class="nc-btn-short">▶ Convert</span>
         </button>
       </div>
 
@@ -844,14 +876,47 @@ function setupLabNumConverter(container) {
     </div>
   `;
 
-  // Enter key shortcut
+  // Enter key shortcut + hint updater
   const inp = container.querySelector("#numconv-input");
   if (inp) {
     inp.addEventListener("keydown", e => { if (e.key === "Enter") runNumConversion(); });
-
-    // Real-time hint updater
     inp.addEventListener("input", updateNumConvHints);
   }
+
+  // Apply responsive select option labels immediately + on resize
+  updateNumConvSelectLabels();
+  if (window._numconvResizeObserver) window._numconvResizeObserver.disconnect();
+  window._numconvResizeObserver = new ResizeObserver(updateNumConvSelectLabels);
+  window._numconvResizeObserver.observe(document.documentElement);
+}
+
+/**
+ * Responsive select option labels.
+ * <select><option> text cannot be changed by CSS alone cross-browser.
+ * This function swaps between short (mobile) and full (desktop) labels.
+ *
+ *  ≤ 460px  →  Binary / Octal / Decimal / Hex
+ *  > 460px  →  Binary (Base 2) / Octal (Base 8) / Decimal (Base 10) / Hexadecimal (Base 16)
+ */
+const NC_OPTION_LABELS = {
+  bin: { short: "Binary",      full: "Binary (Base 2)" },
+  dec: { short: "Decimal",     full: "Decimal (Base 10)" },
+  oct: { short: "Octal",       full: "Octal (Base 8)" },
+  hex: { short: "Hex",         full: "Hexadecimal (Base 16)" },
+};
+
+function updateNumConvSelectLabels() {
+  const isMobile = window.innerWidth <= 460;
+  const selects  = ["numconv-from", "numconv-to"];
+
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Array.from(sel.options).forEach(opt => {
+      const cfg = NC_OPTION_LABELS[opt.value];
+      if (cfg) opt.text = isMobile ? cfg.short : cfg.full;
+    });
+  });
 }
 
 /**
